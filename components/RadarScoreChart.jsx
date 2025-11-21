@@ -1,0 +1,264 @@
+
+import { useEffect, useRef } from 'react';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+
+/**
+ * Componente de Gráfica Radial para Quiz de Lealtad
+ *
+ * Props:
+ * - userScores: objeto con los scores del usuario (valores: 25, 50, 75, 100)
+ * - showComparison: boolean para mostrar/ocultar comparación con promedio
+ * - averageScores: objeto con los promedios (opcional)
+ */
+export default function RadarScoreChart({
+  userScores,
+  showComparison = true,
+  averageScores = null
+}) {
+
+  // Configuración de los scores con sus labels
+  const scoreConfig = [
+    { key: 'scoreCalidad', label: 'Calidad' },
+    { key: 'scoreRelevancia', label: 'Relevancia' },
+    { key: 'scoreIdentidad', label: 'Identidad' },
+    { key: 'scoreConsistencia', label: 'Consistencia' },
+    { key: 'scoreAdopcion', label: 'Adopción' },
+    { key: 'scoreValores', label: 'Valores' },
+    { key: 'scoreConveniencia', label: 'Conveniencia' },
+    { key: 'scoreEficienciaExp', label: 'Eficiencia' },
+    { key: 'scoreFamiliaridad', label: 'Familiaridad' },
+    { key: 'scoreReconocimiento', label: 'Reconocimiento' },
+  ];
+
+  // Transformar datos para el radar chart
+  const chartData = scoreConfig.map(({ key, label }) => {
+    const dataPoint = {
+      subject: label,
+      userScore: userScores[key] || 0,
+    };
+
+    // Agregar promedio si existe y está habilitado
+    if (showComparison && averageScores) {
+      dataPoint.average = averageScores[key] || 0;
+    }
+
+    return dataPoint;
+  });
+
+  // Calcular promedio del usuario
+  const userAverage = (
+    scoreConfig.reduce((sum, { key }) => sum + (userScores[key] || 0), 0) /
+    scoreConfig.length
+  ).toFixed(1);
+
+  // Calcular promedio general (si existe)
+  const generalAverage = averageScores ? (
+    scoreConfig.reduce((sum, { key }) => sum + (averageScores[key] || 0), 0) /
+    scoreConfig.length
+  ).toFixed(1) : null;
+
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 rounded-lg shadow-xl border-2 border-purple-200">
+          <p className="font-bold text-gray-800 mb-2">{payload[0].payload.subject}</p>
+          <p className="text-purple-600 font-semibold">
+            Tu score: {payload[0].value}%
+          </p>
+          {payload.length > 1 && (
+            <p className="text-blue-600 font-semibold">
+              Promedio: {payload[1].value}%
+            </p>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="w-full">
+      {/* Header con promedios */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+          <h3 className="text-lg font-semibold mb-2">Tu Promedio</h3>
+          <div className="flex items-end gap-2">
+            <span className="text-5xl font-bold">{userAverage}</span>
+            <span className="text-2xl mb-1">%</span>
+          </div>
+          <p className="text-purple-100 mt-2">
+            {userAverage >= 75 ? '¡Excelente!' :
+             userAverage >= 50 ? 'Bueno' :
+             'Hay oportunidades de mejora'}
+          </p>
+        </div>
+
+        {generalAverage && (
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">Promedio General</h3>
+            <div className="flex items-end gap-2">
+              <span className="text-5xl font-bold">{generalAverage}</span>
+              <span className="text-2xl mb-1">%</span>
+            </div>
+            <p className="text-blue-100 mt-2">
+              {parseFloat(userAverage) > parseFloat(generalAverage)
+                ? `Estás ${(parseFloat(userAverage) - parseFloat(generalAverage)).toFixed(1)}% arriba`
+                : parseFloat(userAverage) < parseFloat(generalAverage)
+                ? `Estás ${(parseFloat(generalAverage) - parseFloat(userAverage)).toFixed(1)}% abajo`
+                : 'Igual al promedio'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Gráfica Radial */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+          Análisis Detallado por Dimensión
+        </h3>
+
+        <ResponsiveContainer width="100%" height={500}>
+          <RadarChart data={chartData}>
+            <PolarGrid stroke="#e5e7eb" />
+            <PolarAngleAxis
+              dataKey="subject"
+              tick={{ fill: '#4b5563', fontSize: 14, fontWeight: 600 }}
+            />
+            <PolarRadiusAxis
+              angle={90}
+              domain={[0, 100]}
+              tickCount={5}
+              tick={{ fill: '#9ca3af', fontSize: 12 }}
+            />
+
+            {/* Radar del usuario */}
+            <Radar
+              name="Tu Score"
+              dataKey="userScore"
+              stroke="#8b5cf6"
+              fill="#8b5cf6"
+              fillOpacity={0.6}
+              strokeWidth={2}
+            />
+
+            {/* Radar del promedio (si existe) */}
+            {showComparison && averageScores && (
+              <Radar
+                name="Promedio General"
+                dataKey="average"
+                stroke="#3b82f6"
+                fill="#3b82f6"
+                fillOpacity={0.3}
+                strokeWidth={2}
+              />
+            )}
+
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="circle"
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+
+        {/* Leyenda de valores */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-red-50 p-3 rounded-lg text-center">
+            <div className="text-red-600 font-bold text-lg">25%</div>
+            <div className="text-xs text-red-700">Bajo</div>
+          </div>
+          <div className="bg-yellow-50 p-3 rounded-lg text-center">
+            <div className="text-yellow-600 font-bold text-lg">50%</div>
+            <div className="text-xs text-yellow-700">Medio</div>
+          </div>
+          <div className="bg-green-50 p-3 rounded-lg text-center">
+            <div className="text-green-600 font-bold text-lg">75%</div>
+            <div className="text-xs text-green-700">Alto</div>
+          </div>
+          <div className="bg-purple-50 p-3 rounded-lg text-center">
+            <div className="text-purple-600 font-bold text-lg">100%</div>
+            <div className="text-xs text-purple-700">Excelente</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabla de detalles */}
+      <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">
+          Detalle de Scores
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  Dimensión
+                </th>
+                <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                  Tu Score
+                </th>
+                {generalAverage && (
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                    Promedio
+                  </th>
+                )}
+                <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                  Nivel
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {chartData.map((item, index) => {
+                const score = item.userScore;
+                const level = score === 100 ? 'Excelente' :
+                             score === 75 ? 'Alto' :
+                             score === 50 ? 'Medio' : 'Bajo';
+                const levelColor = score === 100 ? 'text-purple-600' :
+                                  score === 75 ? 'text-green-600' :
+                                  score === 50 ? 'text-yellow-600' : 'text-red-600';
+
+                return (
+                  <tr
+                    key={index}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="py-3 px-4 font-medium text-gray-800">
+                      {item.subject}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="text-purple-600 font-bold text-lg">
+                        {score}%
+                      </span>
+                    </td>
+                    {generalAverage && (
+                      <td className="py-3 px-4 text-center">
+                        <span className="text-blue-600 font-semibold">
+                          {item.average}%
+                        </span>
+                      </td>
+                    )}
+                    <td className="py-3 px-4 text-center">
+                      <span className={`font-semibold ${levelColor}`}>
+                        {level}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
