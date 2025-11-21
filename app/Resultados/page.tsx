@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import RadarScoreChart from '@/components/RadarScoreChart';
 
@@ -31,7 +31,18 @@ const scoreLabels: Record<ScoreKey, string> = {
   scoreReconocimiento: 'Reconocimiento',
 };
 
-export default function Resultados() {
+function LoadingSpinner() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600 text-lg">Generando tus resultados...</p>
+      </div>
+    </div>
+  );
+}
+
+function ResultadosContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [userScores, setUserScores] = useState<Scores | null>(null);
@@ -124,14 +135,7 @@ export default function Resultados() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 text-lg">Generando tus resultados...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!userScores) {
@@ -240,5 +244,13 @@ export default function Resultados() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Resultados() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ResultadosContent />
+    </Suspense>
   );
 }
