@@ -1,7 +1,6 @@
 'use client'
-// pages/resultados.js
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useSearchParams } from 'next/navigation';
 import RadarScoreChart from '@/components/RadarScoreChart';
 
 interface Scores {
@@ -33,7 +32,7 @@ const scoreLabels: Record<ScoreKey, string> = {
 };
 
 export default function Resultados() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [userScores, setUserScores] = useState<Scores | null>(null);
   const [averageScores, setAverageScores] = useState<Scores | null>(null);
@@ -41,25 +40,22 @@ export default function Resultados() {
 
   useEffect(() => {
     // Obtener los scores del usuario desde los query params de Tally
-    const {
-      score_calidad,
-      score_relevancia,
-      score_identidad,
-      score_consistencia,
-      score_adopcion,
-      score_valores,
-      score_conveniencia,
-      score_eficiencia_exp,
-      score_familiaridad,
-      score_reconocimiento,
-    } = router.query;
+    const score_calidad = searchParams.get('score_calidad');
+    const score_relevancia = searchParams.get('score_relevancia');
+    const score_identidad = searchParams.get('score_identidad');
+    const score_consistencia = searchParams.get('score_consistencia');
+    const score_adopcion = searchParams.get('score_adopcion');
+    const score_valores = searchParams.get('score_valores');
+    const score_conveniencia = searchParams.get('score_conveniencia');
+    const score_eficiencia_exp = searchParams.get('score_eficiencia_exp');
+    const score_familiaridad = searchParams.get('score_familiaridad');
+    const score_reconocimiento = searchParams.get('score_reconocimiento');
 
     if (score_calidad) {
       // Mapear los valores de Tally a porcentajes
       // Tally envía valores 0-10, convertimos a 25%, 50%, 75%, 100%
-      const mapScoreToPercentage = (score: string | string[] | undefined): number => {
-        const scoreStr = Array.isArray(score) ? score[0] : score;
-        const numScore = parseFloat(scoreStr || '0');
+      const mapScoreToPercentage = (score: string | null): number => {
+        const numScore = parseFloat(score || '0');
         if (numScore >= 8) return 100;  // 8-10 = 100%
         if (numScore >= 5) return 75;   // 5-7 = 75%
         if (numScore >= 3) return 50;   // 3-4 = 50%
@@ -97,7 +93,7 @@ export default function Resultados() {
       });
       fetchAverageScores();
     }
-  }, [router.query]);
+  }, [searchParams]);
 
   const fetchAverageScores = async () => {
     try {
