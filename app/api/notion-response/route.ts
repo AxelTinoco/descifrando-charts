@@ -70,18 +70,18 @@ export async function GET(request: NextRequest) {
 
     const page: any = data.results[0];
 
-    // Extraer los scores
+    // Extraer los scores (usando los nombres reales de las propiedades en Notion)
     const userScores = {
-      scoreCalidad: mapScoreToPercentage(page.properties['Score Calidad']?.number || 0),
-      scoreRelevancia: mapScoreToPercentage(page.properties['Score Relevancia']?.number || 0),
-      scoreIdentidad: mapScoreToPercentage(page.properties['Score Identidad']?.number || 0),
-      scoreConsistencia: mapScoreToPercentage(page.properties['Score Consistencia']?.number || 0),
-      scoreAdopcion: mapScoreToPercentage(page.properties['Score Adopción']?.number || 0),
-      scoreValores: mapScoreToPercentage(page.properties['Score Valores']?.number || 0),
-      scoreConveniencia: mapScoreToPercentage(page.properties['Score Conveniencia']?.number || 0),
-      scoreEficienciaExp: mapScoreToPercentage(page.properties['Score Eficiencia Exp']?.number || 0),
-      scoreFamiliaridad: mapScoreToPercentage(page.properties['Score Familiaridad']?.number || 0),
-      scoreReconocimiento: mapScoreToPercentage(page.properties['Score Reconocimiento']?.number || 0),
+      scoreCalidad: mapScoreToPercentage(page.properties['Calidad y eficiencia']?.number || 0),
+      scoreRelevancia: mapScoreToPercentage(page.properties['Relevancia']?.number || 0),
+      scoreIdentidad: mapScoreToPercentage(page.properties['Identidad']?.number || 0),
+      scoreConsistencia: mapScoreToPercentage(page.properties['Consistencia']?.number || 0),
+      scoreAdopcion: mapScoreToPercentage(page.properties['Adopción']?.number || 0),
+      scoreValores: mapScoreToPercentage(page.properties['Valores e impacto']?.number || 0),
+      scoreConveniencia: mapScoreToPercentage(page.properties['Conveniencia']?.number || 0),
+      scoreEficienciaExp: mapScoreToPercentage(page.properties['Eficiencia en la experiencia']?.number || 0),
+      scoreFamiliaridad: mapScoreToPercentage(page.properties['Familiaridad']?.number || 0),
+      scoreReconocimiento: mapScoreToPercentage(page.properties['Reconocimiento']?.number || 0),
     };
 
     // Extraer info adicional

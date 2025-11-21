@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
-import { Client } from '@notionhq/client';
 
-const notion = new Client({
-  auth: process.env.NOTION_API_KEY,
-});
+// Formatear el ID con guiones si no los tiene (formato UUID)
+function formatNotionId(id: string): string {
+  if (id.includes('-')) return id;
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
+}
 
-const DATABASE_ID = process.env.NOTION_DATABASE_ID || '9ba6f361-af85-45a0-8e2a-62b77cae404d';
+const DATABASE_ID = formatNotionId(process.env.NOTION_DATABASE_ID || '');
+const NOTION_API_KEY = process.env.NOTION_API_KEY || '';
 
 function mapScoreToPercentage(score: number): number {
   if (score >= 100) return 100;
@@ -16,21 +18,34 @@ function mapScoreToPercentage(score: number): number {
 
 async function getAllResponses() {
   try {
-    const response = await notion.dataSources.query({
-      data_source_id: DATABASE_ID,
+    const response = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28',
+      },
+      body: JSON.stringify({})
     });
 
-    return response.results.map((page: any) => ({
-      scoreCalidad: mapScoreToPercentage(page.properties['Score Calidad']?.number || 0),
-      scoreRelevancia: mapScoreToPercentage(page.properties['Score Relevancia']?.number || 0),
-      scoreIdentidad: mapScoreToPercentage(page.properties['Score Identidad']?.number || 0),
-      scoreConsistencia: mapScoreToPercentage(page.properties['Score Consistencia']?.number || 0),
-      scoreAdopcion: mapScoreToPercentage(page.properties['Score Adopción']?.number || 0),
-      scoreValores: mapScoreToPercentage(page.properties['Score Valores']?.number || 0),
-      scoreConveniencia: mapScoreToPercentage(page.properties['Score Conveniencia']?.number || 0),
-      scoreEficienciaExp: mapScoreToPercentage(page.properties['Score Eficiencia Exp']?.number || 0),
-      scoreFamiliaridad: mapScoreToPercentage(page.properties['Score Familiaridad']?.number || 0),
-      scoreReconocimiento: mapScoreToPercentage(page.properties['Score Reconocimiento']?.number || 0),
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message);
+    }
+
+    const data = await response.json();
+
+    return data.results.map((page: any) => ({
+      scoreCalidad: mapScoreToPercentage(page.properties['Calidad y eficiencia']?.number || 0),
+      scoreRelevancia: mapScoreToPercentage(page.properties['Relevancia']?.number || 0),
+      scoreIdentidad: mapScoreToPercentage(page.properties['Identidad']?.number || 0),
+      scoreConsistencia: mapScoreToPercentage(page.properties['Consistencia']?.number || 0),
+      scoreAdopcion: mapScoreToPercentage(page.properties['Adopción']?.number || 0),
+      scoreValores: mapScoreToPercentage(page.properties['Valores e impacto']?.number || 0),
+      scoreConveniencia: mapScoreToPercentage(page.properties['Conveniencia']?.number || 0),
+      scoreEficienciaExp: mapScoreToPercentage(page.properties['Eficiencia en la experiencia']?.number || 0),
+      scoreFamiliaridad: mapScoreToPercentage(page.properties['Familiaridad']?.number || 0),
+      scoreReconocimiento: mapScoreToPercentage(page.properties['Reconocimiento']?.number || 0),
     }));
   } catch (error) {
     console.error('Error fetching from Notion:', error);
