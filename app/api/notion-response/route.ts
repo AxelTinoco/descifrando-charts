@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Client } from '@notionhq/client';
 
-const notion = new Client({
-  auth: process.env.NOTION_API_KEY,
-});
+// Formatear el ID con guiones si no los tiene (formato UUID)
+function formatNotionId(id: string): string {
+  if (id.includes('-')) return id;
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
+}
 
-const DATABASE_ID = process.env.NOTION_DATABASE_ID || '9ba6f361-af85-45a0-8e2a-62b77cae404d';
+const DATABASE_ID = formatNotionId(process.env.NOTION_DATABASE_ID || '');
+const NOTION_API_KEY = process.env.NOTION_API_KEY || '';
 
 function mapScoreToPercentage(score: number): number {
   if (score >= 100) return 100;
@@ -26,25 +28,47 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Buscar en Notion la respuesta con este submission_id
-    const response = await notion.dataSources.query({
-      data_source_id: DATABASE_ID,
-      filter: {
-        property: 'Submission ID',
-        rich_text: {
-          equals: submission_id
+    // Usar fetch directamente con la API de Notion
+    const response = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28', // Versión estable de la API
+      },
+      body: JSON.stringify({
+        filter: {
+          property: 'Respondent ID',
+          rich_text: {
+            equals: submission_id
+          }
         }
-      }
+      })
     });
 
-    if (response.results.length === 0) {
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Notion API error:', errorData);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Error al consultar Notion',
+          message: errorData.message,
+        },
+        { status: response.status }
+      );
+    }
+
+    const data = await response.json();
+
+    if (data.results.length === 0) {
       return NextResponse.json(
         { success: false, error: 'No se encontró la respuesta' },
         { status: 404 }
       );
     }
 
-    const page: any = response.results[0];
+    const page: any = data.results[0];
 
     // Extraer los scores
     const userScores = {
