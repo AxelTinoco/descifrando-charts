@@ -66,6 +66,40 @@ export default function RadarScoreChart({
     scoreConfig.length
   ).toFixed(1) : null;
 
+  // Custom tick para mostrar label + porcentaje
+  const CustomTick = ({ x, y, payload }) => {
+    // Buscar el score correspondiente en chartData
+    const dataPoint = chartData.find(item => item.subject === payload.value);
+    const percentage = dataPoint ? dataPoint.userScore : 0;
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          dy={-5}
+          textAnchor="middle"
+          fill="#4b5563"
+          fontSize={14}
+          fontWeight={600}
+        >
+          {payload.value}
+        </text>
+        <text
+          x={0}
+          y={0}
+          dy={12}
+          textAnchor="middle"
+          fill="#8b5cf6"
+          fontSize={13}
+          fontWeight={700}
+        >
+          {percentage}%
+        </text>
+      </g>
+    );
+  };
+
   // Custom tooltip
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -97,7 +131,7 @@ export default function RadarScoreChart({
             <PolarGrid stroke="#e5e7eb" />
             <PolarAngleAxis
               dataKey="subject"
-              tick={{ fill: '#4b5563', fontSize: 14, fontWeight: 600 }}
+              tick={<CustomTick />}
             />
             <PolarRadiusAxis
               angle={90}
