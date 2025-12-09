@@ -1,0 +1,138 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { saveResult } from '@/lib/resultsCache';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+
+    console.log('\n========================================');
+    console.log('🎯 WEBHOOK RECIBIDO DE TALLY');
+    console.log('========================================');
+
+    // Extraer datos de Tally
+    const tallyData = body.data?.fields || body.fields || body;
+    const submission_id = body.eventId || body.submissionId || body.data?.responseId || Date.now().toString();
+
+    // Convertir array de fields a objeto key-value para facilitar búsqueda
+    const fieldsMap = new Map<string, any>();
+
+    if (Array.isArray(tallyData)) {
+      tallyData.forEach((field: any) => {
+        fieldsMap.set(field.key, field);
+      });
+    }
+
+    console.log(`📋 Submission ID: ${submission_id}`);
+    console.log(`📊 Total de campos recibidos: ${fieldsMap.size}`);
+
+    // Extraer nombre
+    const nombreField = tallyData.find((f: any) => f.label === 'Nombre');
+    const nombre = nombreField?.value || 'Usuario';
+
+    // Encontrar los campos calculados por Tally (tipo CALCULATED_FIELDS)
+    // Estos ya vienen con la ponderación 70%/30% aplicada
+    const calculatedFields = tallyData.filter((f: any) => f.type === 'CALCULATED_FIELDS');
+
+    console.log(`\n🔢 Campos calculados encontrados: ${calculatedFields.length}`);
+
+    // Mapear los scores calculados por pilar
+    const scoresMap: { [key: string]: { q70: number; q30: number } } = {
+      'Calidad y eficiencia': { q70: 0, q30: 0 },
+      'Relevancia': { q70: 0, q30: 0 },
+      'Identidad': { q70: 0, q30: 0 },
+      'Consistencia': { q70: 0, q30: 0 },
+      'Adopción': { q70: 0, q30: 0 },
+      'Valores e impacto': { q70: 0, q30: 0 },
+      'Conveniencia': { q70: 0, q30: 0 },
+      'Eficiencia en la experiencia': { q70: 0, q30: 0 },
+      'Familiaridad': { q70: 0, q30: 0 },
+      'Reconocimiento': { q70: 0, q30: 0 },
+    };
+
+    // Extraer scores de los campos calculados
+    calculatedFields.forEach((field: any) => {
+      const label = field.label;
+      const value = field.value || 0;
+
+      // Determinar el pilar y si es 70% o 30%
+      for (const pilar of Object.keys(scoresMap)) {
+        if (label.includes(pilar)) {
+          if (label.includes('(70%)')) {
+            scoresMap[pilar].q70 = value;
+          } else if (label.includes('(30%)')) {
+            scoresMap[pilar].q30 = value;
+          }
+          break;
+        }
+      }
+    });
+
+    console.log('\n📊 Scores extraídos de Tally:');
+    Object.entries(scoresMap).forEach(([pilar, scores]) => {
+      console.log(`   ${pilar}: 70%=${scores.q70}, 30%=${scores.q30}`);
+    });
+
+    // Calcular scores finales (sumar 70% + 30%)
+    // Tally ya envía los valores calculados, solo necesitamos sumarlos
+    const finalScores = {
+      scoreCalidad: scoresMap['Calidad y eficiencia'].q70 + scoresMap['Calidad y eficiencia'].q30,
+      scoreRelevancia: scoresMap['Relevancia'].q70 + scoresMap['Relevancia'].q30,
+      scoreIdentidad: scoresMap['Identidad'].q70 + scoresMap['Identidad'].q30,
+      scoreConsistencia: scoresMap['Consistencia'].q70 + scoresMap['Consistencia'].q30,
+      scoreAdopcion: scoresMap['Adopción'].q70 + scoresMap['Adopción'].q30,
+      scoreValores: scoresMap['Valores e impacto'].q70 + scoresMap['Valores e impacto'].q30,
+      scoreConveniencia: scoresMap['Conveniencia'].q70 + scoresMap['Conveniencia'].q30,
+      scoreEficienciaExp: scoresMap['Eficiencia en la experiencia'].q70 + scoresMap['Eficiencia en la experiencia'].q30,
+      scoreFamiliaridad: scoresMap['Familiaridad'].q70 + scoresMap['Familiaridad'].q30,
+      scoreReconocimiento: scoresMap['Reconocimiento'].q70 + scoresMap['Reconocimiento'].q30,
+    };
+
+    console.log('\n✅ Scores finales calculados:');
+    Object.entries(finalScores).forEach(([key, value]) => {
+      console.log(`   ${key}: ${value}`);
+    });
+
+    // Guardar resultados en caché para que la página los recupere
+    saveResult(submission_id, {
+      submission_id,
+      nombre,
+      scores: finalScores,
+      timestamp: Date.now(),
+    });
+
+    console.log('💾 Resultados guardados en caché');
+    console.log('========================================\n');
+
+    // Devolver respuesta exitosa
+    return NextResponse.json({
+      success: true,
+      message: 'Datos procesados y guardados exitosamente',
+      submission_id,
+      nombre,
+      scores: finalScores,
+      timestamp: new Date().toISOString(),
+    }, { status: 200 });
+
+  } catch (error: any) {
+    console.error('\n❌ ERROR EN WEBHOOK:');
+    console.error('========================================');
+    console.error(error);
+    console.error('========================================\n');
+
+    return NextResponse.json({
+      success: false,
+      error: 'Error al procesar el webhook',
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    }, { status: 500 });
+  }
+}
+
+// GET endpoint para debugging/testing
+export async function GET() {
+  return NextResponse.json({
+    message: 'Tally Webhook Endpoint - Simplified (No Notion)',
+    instructions: 'Send POST requests with Tally form data. Scores are extracted from CALCULATED_FIELDS.',
+    note: 'Tally debe tener campos calculados con formato: "Nombre del Pilar (70%)" y "Nombre del Pilar (30%)"',
+  });
+}

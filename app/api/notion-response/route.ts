@@ -66,16 +66,16 @@ export async function GET(request: NextRequest) {
     // Extraer los scores directamente desde Notion (sin bucketing)
     // Los scores ya vienen calculados con la ponderación 70%/30%
     const userScores = {
-      scoreCalidad: Math.round(page.properties['Calidad y eficiencia']?.number || 0),
-      scoreRelevancia: Math.round(page.properties['Relevancia']?.number || 0),
-      scoreIdentidad: Math.round(page.properties['Identidad']?.number || 0),
-      scoreConsistencia: Math.round(page.properties['Consistencia']?.number || 0),
-      scoreAdopcion: Math.round(page.properties['Adopción']?.number || 0),
-      scoreValores: Math.round(page.properties['Valores e impacto']?.number || 0),
-      scoreConveniencia: Math.round(page.properties['Conveniencia']?.number || 0),
-      scoreEficienciaExp: Math.round(page.properties['Eficiencia en la experiencia']?.number || 0),
-      scoreFamiliaridad: Math.round(page.properties['Familiaridad']?.number || 0),
-      scoreReconocimiento: Math.round(page.properties['Reconocimiento']?.number || 0),
+      scoreCalidad: Math.round(page.properties['Score Calidad']?.number || 0),
+      scoreRelevancia: Math.round(page.properties['Score Relevancia']?.number || 0),
+      scoreIdentidad: Math.round(page.properties['Score Identidad']?.number || 0),
+      scoreConsistencia: Math.round(page.properties['Score Consistencia']?.number || 0),
+      scoreAdopcion: Math.round(page.properties['Score Adopción']?.number || 0),
+      scoreValores: Math.round(page.properties['Score Valores']?.number || 0),
+      scoreConveniencia: Math.round(page.properties['Score Conveniencia']?.number || 0),
+      scoreEficienciaExp: Math.round(page.properties['Score Eficiencia Exp']?.number || 0),
+      scoreFamiliaridad: Math.round(page.properties['Score Familiaridad']?.number || 0),
+      scoreReconocimiento: Math.round(page.properties['Score Reconocimiento']?.number || 0),
     };
 
     // Extraer info adicional

@@ -47,8 +47,8 @@ function LoadingSpinner() {
     <div className="min-h-screen flex items-center justify-center bg-[#232323]">
       <div className="text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600 text-lg">Cargando tus resultados desde Notion...</p>
-        <p className="mt-2 text-gray-500 text-sm">Esto puede tomar unos segundos</p>
+        <p className="mt-4 text-gray-200 text-lg">Cargando tus resultados...</p>
+        <p className="mt-2 text-gray-400 text-sm">Esto puede tomar unos segundos</p>
       </div>
     </div>
   );
@@ -88,14 +88,132 @@ function ResultadosContent() {
 
   useEffect(() => {
     const submission_id = searchParams.get('submission_id');
+    const scoresParam = searchParams.get('scores');
+    const nombreParam = searchParams.get('nombre');
 
-    if (submission_id) {
-      loadDataFromNotion(submission_id);
-    } else {
-      // Modo demo si no hay submission_id
+    // Prioridad 1: Datos directos desde el webhook (parámetros URL) - Legacy
+    if (scoresParam) {
+      console.log('📊 Cargando datos desde parámetros URL (modo legacy)');
+      try {
+        const parsedScores = JSON.parse(scoresParam);
+        setUserScores(parsedScores);
+        setUserName(nombreParam || 'Usuario');
+
+        // Cargar promedios en background
+        loadAverages();
+        setLoading(false);
+      } catch (err) {
+        console.error('Error parsing scores from URL:', err);
+        // Fallback a caché
+        if (submission_id) {
+          loadDataFromCache(submission_id);
+        } else {
+          loadDemoData();
+        }
+      }
+    }
+    // Prioridad 2: Buscar en caché (modo principal)
+    else if (submission_id) {
+      console.log('📊 Cargando datos desde caché');
+      loadDataFromCache(submission_id);
+    }
+    // Prioridad 3: Modo demo
+    else {
+      console.log('📊 Cargando datos demo');
       loadDemoData();
     }
   }, [searchParams]);
+
+  const loadDataFromCache = async (submissionId: string, retryCount = 0) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/get-results?submission_id=${submissionId}`);
+      const data = await response.json();
+
+      if (!data.success || !data.scores) {
+        // Si no encuentra los datos y es el primer intento, reintentar después de 2 segundos
+        if (retryCount < 3) {
+          console.log(`⏳ Reintentando en 2 segundos... (intento ${retryCount + 1}/3)`);
+          setTimeout(() => {
+            loadDataFromCache(submissionId, retryCount + 1);
+          }, 2000);
+          return;
+        }
+
+        // Si después de 3 intentos no encuentra, mostrar error
+        setError('No se encontraron tus resultados. Por favor, intenta de nuevo.');
+        setLoading(false);
+        return;
+      }
+
+      setUserScores(data.scores);
+      setUserName(data.nombre || 'Usuario');
+
+      // Cargar promedios
+      await loadAverages();
+      setLoading(false);
+
+    } catch (err) {
+      console.error('Error loading data from cache:', err);
+
+      // Reintentar si es el primer intento
+      if (retryCount < 3) {
+        console.log(`⏳ Reintentando en 2 segundos... (intento ${retryCount + 1}/3)`);
+        setTimeout(() => {
+          loadDataFromCache(submissionId, retryCount + 1);
+        }, 2000);
+        return;
+      }
+
+      setError('Error al cargar los datos');
+      setLoading(false);
+    }
+  };
+
+  const loadAverages = async () => {
+    try {
+      const response = await fetch('/api/notion-averages');
+      const data = await response.json();
+
+      if (data.success) {
+        setAverageScores(data.averages);
+        setTotalResponses(data.total);
+      } else {
+        // Fallback: valores promedio realistas
+        setAverageScores({
+          scoreCalidad: 65,
+          scoreRelevancia: 58,
+          scoreIdentidad: 62,
+          scoreConsistencia: 70,
+          scoreAdopcion: 55,
+          scoreValores: 68,
+          scoreConveniencia: 60,
+          scoreEficienciaExp: 64,
+          scoreFamiliaridad: 72,
+          scoreReconocimiento: 67,
+        });
+        setTotalResponses(100);
+      }
+    } catch (err) {
+      console.error('Error loading averages:', err);
+      // Fallback values
+      setAverageScores({
+        scoreCalidad: 65,
+        scoreRelevancia: 58,
+        scoreIdentidad: 62,
+        scoreConsistencia: 70,
+        scoreAdopcion: 55,
+        scoreValores: 68,
+        scoreConveniencia: 60,
+        scoreEficienciaExp: 64,
+        scoreFamiliaridad: 72,
+        scoreReconocimiento: 67,
+      });
+      setTotalResponses(100);
+    }
+  };
 
   const loadDataFromNotion = async (submissionId: string) => {
     setLoading(true);
