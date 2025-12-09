@@ -86,25 +86,31 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    console.log('\n📊 Scores extraídos de Tally:');
+    // Función para calcular el score ponderado
+    const calculateWeightedScore = (q70Value: number, q30Value: number): number => {
+      return Math.round((q70Value * 0.70) + (q30Value * 0.30));
+    };
+
+    console.log('\n📊 Scores extraídos de Tally (con ponderación correcta):');
     Object.entries(scoresMap).forEach(([pilar, scores]) => {
-      const total = scores.q70 + scores.q30;
-      console.log(`   ${pilar}: 70%=${scores.q70}, 30%=${scores.q30}, SUMA=${total}`);
+      const weighted = calculateWeightedScore(scores.q70, scores.q30);
+      console.log(`   ${pilar}: Q1=${scores.q70} (70%), Q2=${scores.q30} (30%) → Score Final=${weighted}`);
     });
 
-    // Calcular scores finales (sumar 70% + 30%)
-    // Tally ya envía los valores calculados, solo necesitamos sumarlos
+    // Calcular scores finales aplicando la ponderación 70%/30%
+    // Tally envía los valores brutos (0, 33, 66, 100) de cada pregunta
+    // Nosotros aplicamos los pesos: Score = (Q1 × 0.70) + (Q2 × 0.30)
     const finalScores = {
-      scoreCalidad: scoresMap['Calidad y eficiencia'].q70 + scoresMap['Calidad y eficiencia'].q30,
-      scoreRelevancia: scoresMap['Relevancia'].q70 + scoresMap['Relevancia'].q30,
-      scoreIdentidad: scoresMap['Identidad'].q70 + scoresMap['Identidad'].q30,
-      scoreConsistencia: scoresMap['Consistencia'].q70 + scoresMap['Consistencia'].q30,
-      scoreAdopcion: scoresMap['Adopción'].q70 + scoresMap['Adopción'].q30,
-      scoreValores: scoresMap['Valores e impacto'].q70 + scoresMap['Valores e impacto'].q30,
-      scoreConveniencia: scoresMap['Conveniencia'].q70 + scoresMap['Conveniencia'].q30,
-      scoreEficienciaExp: scoresMap['Eficiencia en la experiencia'].q70 + scoresMap['Eficiencia en la experiencia'].q30,
-      scoreFamiliaridad: scoresMap['Familiaridad'].q70 + scoresMap['Familiaridad'].q30,
-      scoreReconocimiento: scoresMap['Reconocimiento'].q70 + scoresMap['Reconocimiento'].q30,
+      scoreCalidad: calculateWeightedScore(scoresMap['Calidad y eficiencia'].q70, scoresMap['Calidad y eficiencia'].q30),
+      scoreRelevancia: calculateWeightedScore(scoresMap['Relevancia'].q70, scoresMap['Relevancia'].q30),
+      scoreIdentidad: calculateWeightedScore(scoresMap['Identidad'].q70, scoresMap['Identidad'].q30),
+      scoreConsistencia: calculateWeightedScore(scoresMap['Consistencia'].q70, scoresMap['Consistencia'].q30),
+      scoreAdopcion: calculateWeightedScore(scoresMap['Adopción'].q70, scoresMap['Adopción'].q30),
+      scoreValores: calculateWeightedScore(scoresMap['Valores e impacto'].q70, scoresMap['Valores e impacto'].q30),
+      scoreConveniencia: calculateWeightedScore(scoresMap['Conveniencia'].q70, scoresMap['Conveniencia'].q30),
+      scoreEficienciaExp: calculateWeightedScore(scoresMap['Eficiencia en la experiencia'].q70, scoresMap['Eficiencia en la experiencia'].q30),
+      scoreFamiliaridad: calculateWeightedScore(scoresMap['Familiaridad'].q70, scoresMap['Familiaridad'].q30),
+      scoreReconocimiento: calculateWeightedScore(scoresMap['Reconocimiento'].q70, scoresMap['Reconocimiento'].q30),
     };
 
     console.log('\n✅ Scores finales calculados:');
