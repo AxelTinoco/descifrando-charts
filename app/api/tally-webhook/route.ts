@@ -64,6 +64,11 @@ export async function POST(request: NextRequest) {
     };
 
     // Extraer scores de los campos calculados
+    console.log('\n🔍 DEBUG - Campos calculados recibidos:');
+    calculatedFields.forEach((field: any) => {
+      console.log(`   ${field.label} = ${field.value}`);
+    });
+
     calculatedFields.forEach((field: any) => {
       const label = field.label;
       const value = field.value || 0;
@@ -83,7 +88,8 @@ export async function POST(request: NextRequest) {
 
     console.log('\n📊 Scores extraídos de Tally:');
     Object.entries(scoresMap).forEach(([pilar, scores]) => {
-      console.log(`   ${pilar}: 70%=${scores.q70}, 30%=${scores.q30}`);
+      const total = scores.q70 + scores.q30;
+      console.log(`   ${pilar}: 70%=${scores.q70}, 30%=${scores.q30}, SUMA=${total}`);
     });
 
     // Calcular scores finales (sumar 70% + 30%)
