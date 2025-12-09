@@ -44,7 +44,7 @@ interface NotionResponse {
 
 function LoadingSpinner() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
+    <div className="min-h-screen flex items-center justify-center bg-[#232323]">
       <div className="text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
         <p className="mt-4 text-gray-600 text-lg">Cargando tus resultados desde Notion...</p>
@@ -133,17 +133,18 @@ function ResultadosContent() {
   const loadDemoData = async () => {
     console.warn('No submission_id found, showing demo data');
 
+    // Valores demo actualizados a la nueva escala (0, 33, 66, 100)
     setUserScores({
-      scoreCalidad: 75,
-      scoreRelevancia: 50,
-      scoreIdentidad: 75,
+      scoreCalidad: 66,
+      scoreRelevancia: 33,
+      scoreIdentidad: 66,
       scoreConsistencia: 100,
-      scoreAdopcion: 50,
-      scoreValores: 75,
-      scoreConveniencia: 75,
-      scoreEficienciaExp: 75,
+      scoreAdopcion: 33,
+      scoreValores: 66,
+      scoreConveniencia: 66,
+      scoreEficienciaExp: 66,
       scoreFamiliaridad: 100,
-      scoreReconocimiento: 75,
+      scoreReconocimiento: 66,
     });
 
     try {
@@ -152,17 +153,18 @@ function ResultadosContent() {
       setAverageScores(data.averages);
       setTotalResponses(data.total);
     } catch (err) {
+      // Fallback: valores promedio realistas con la nueva escala
       setAverageScores({
-        scoreCalidad: 68,
-        scoreRelevancia: 62,
-        scoreIdentidad: 70,
-        scoreConsistencia: 75,
-        scoreAdopcion: 58,
-        scoreValores: 72,
-        scoreConveniencia: 65,
-        scoreEficienciaExp: 70,
-        scoreFamiliaridad: 78,
-        scoreReconocimiento: 73,
+        scoreCalidad: 65,
+        scoreRelevancia: 58,
+        scoreIdentidad: 62,
+        scoreConsistencia: 70,
+        scoreAdopcion: 55,
+        scoreValores: 68,
+        scoreConveniencia: 60,
+        scoreEficienciaExp: 64,
+        scoreFamiliaridad: 72,
+        scoreReconocimiento: 67,
       });
       setTotalResponses(100);
     }
@@ -202,22 +204,16 @@ function ResultadosContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 py-8 px-4">
+    <div className="min-h-screen bg-[#232323] py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🎉</div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-            {userName ? `¡Gracias ${userName}!` : '¡Gracias por completar el Quiz!'}
+        <div className="text-left mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+            Tu relación con
           </h1>
-          <p className="text-xl text-gray-600">
-            Aquí están tus resultados comparados con {totalResponses} respuestas
-          </p>
-          {userName && (
-            <p className="text-sm text-gray-500 mt-2">
-              Datos obtenidos desde Notion ✨
-            </p>
-          )}
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+            Marca
+          </h1>
         </div>
 
         {/* Gráfica Principal */}
@@ -235,10 +231,10 @@ function ResultadosContent() {
               <div className="text-3xl">💪</div>
               <h3 className="text-2xl font-bold text-gray-800">Fortalezas</h3>
             </div>
-            {Object.values(userScores).filter(score => score >= 75).length > 0 ? (
+            {Object.values(userScores).filter(score => score >= 66).length > 0 ? (
               <ul className="space-y-2">
                 {Object.entries(userScores)
-                  .filter(([_, score]) => score >= 75)
+                  .filter(([_, score]) => score >= 66)
                   .map(([key, score]) => (
                     <li key={key} className="flex items-center gap-2">
                       <span className="text-green-500 text-xl">✓</span>
@@ -261,10 +257,10 @@ function ResultadosContent() {
               <div className="text-3xl">📈</div>
               <h3 className="text-2xl font-bold text-gray-800">Oportunidades</h3>
             </div>
-            {Object.values(userScores).filter(score => score <= 50).length > 0 ? (
+            {Object.values(userScores).filter(score => score <= 33).length > 0 ? (
               <ul className="space-y-2">
                 {Object.entries(userScores)
-                  .filter(([_, score]) => score <= 50)
+                  .filter(([_, score]) => score <= 33)
                   .map(([key, score]) => (
                     <li key={key} className="flex items-center gap-2">
                       <span className="text-yellow-500 text-xl">→</span>
@@ -304,7 +300,7 @@ function ResultadosContent() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-gray-600">
+        <div className="mt-8 text-center text-gray-300">
           <p>Resultados generados el {new Date().toLocaleDateString('es-MX')}</p>
           <p className="mt-2 text-sm">
             Basado en {totalResponses} respuestas · Quiz de Lealtad de Marca

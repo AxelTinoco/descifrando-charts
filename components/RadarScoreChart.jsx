@@ -89,44 +89,9 @@ export default function RadarScoreChart({
   return (
     <div className="w-full">
       {/* Header con promedios */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-          <h3 className="text-lg font-semibold mb-2">Tu Promedio</h3>
-          <div className="flex items-end gap-2">
-            <span className="text-5xl font-bold">{userAverage}</span>
-            <span className="text-2xl mb-1">%</span>
-          </div>
-          <p className="text-purple-100 mt-2">
-            {userAverage >= 75 ? '¡Excelente!' :
-             userAverage >= 50 ? 'Bueno' :
-             'Hay oportunidades de mejora'}
-          </p>
-        </div>
-
-        {generalAverage && (
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-            <h3 className="text-lg font-semibold mb-2">Promedio General</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-5xl font-bold">{generalAverage}</span>
-              <span className="text-2xl mb-1">%</span>
-            </div>
-            <p className="text-blue-100 mt-2">
-              {parseFloat(userAverage) > parseFloat(generalAverage)
-                ? `Estás ${(parseFloat(userAverage) - parseFloat(generalAverage)).toFixed(1)}% arriba`
-                : parseFloat(userAverage) < parseFloat(generalAverage)
-                ? `Estás ${(parseFloat(generalAverage) - parseFloat(userAverage)).toFixed(1)}% abajo`
-                : 'Igual al promedio'}
-            </p>
-          </div>
-        )}
-      </div>
 
       {/* Gráfica Radial */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Análisis Detallado por Dimensión
-        </h3>
-
+      <div className="bg-[#232323] rounded-xl shadow-lg p-6">
         <ResponsiveContainer width="100%" height={500}>
           <RadarChart data={chartData}>
             <PolarGrid stroke="#e5e7eb" />

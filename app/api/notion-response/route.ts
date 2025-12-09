@@ -9,13 +9,6 @@ function formatNotionId(id: string): string {
 const DATABASE_ID = formatNotionId(process.env.NOTION_DATABASE_ID || '');
 const NOTION_API_KEY = process.env.NOTION_API_KEY || '';
 
-function mapScoreToPercentage(score: number): number {
-  if (score >= 100) return 100;
-  if (score >= 75) return 75;
-  if (score >= 50) return 50;
-  return 25;
-}
-
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const submission_id = searchParams.get('submission_id');
@@ -70,18 +63,19 @@ export async function GET(request: NextRequest) {
 
     const page: any = data.results[0];
 
-    // Extraer los scores (usando los nombres reales de las propiedades en Notion)
+    // Extraer los scores directamente desde Notion (sin bucketing)
+    // Los scores ya vienen calculados con la ponderación 70%/30%
     const userScores = {
-      scoreCalidad: mapScoreToPercentage(page.properties['Calidad y eficiencia']?.number || 0),
-      scoreRelevancia: mapScoreToPercentage(page.properties['Relevancia']?.number || 0),
-      scoreIdentidad: mapScoreToPercentage(page.properties['Identidad']?.number || 0),
-      scoreConsistencia: mapScoreToPercentage(page.properties['Consistencia']?.number || 0),
-      scoreAdopcion: mapScoreToPercentage(page.properties['Adopción']?.number || 0),
-      scoreValores: mapScoreToPercentage(page.properties['Valores e impacto']?.number || 0),
-      scoreConveniencia: mapScoreToPercentage(page.properties['Conveniencia']?.number || 0),
-      scoreEficienciaExp: mapScoreToPercentage(page.properties['Eficiencia en la experiencia']?.number || 0),
-      scoreFamiliaridad: mapScoreToPercentage(page.properties['Familiaridad']?.number || 0),
-      scoreReconocimiento: mapScoreToPercentage(page.properties['Reconocimiento']?.number || 0),
+      scoreCalidad: Math.round(page.properties['Calidad y eficiencia']?.number || 0),
+      scoreRelevancia: Math.round(page.properties['Relevancia']?.number || 0),
+      scoreIdentidad: Math.round(page.properties['Identidad']?.number || 0),
+      scoreConsistencia: Math.round(page.properties['Consistencia']?.number || 0),
+      scoreAdopcion: Math.round(page.properties['Adopción']?.number || 0),
+      scoreValores: Math.round(page.properties['Valores e impacto']?.number || 0),
+      scoreConveniencia: Math.round(page.properties['Conveniencia']?.number || 0),
+      scoreEficienciaExp: Math.round(page.properties['Eficiencia en la experiencia']?.number || 0),
+      scoreFamiliaridad: Math.round(page.properties['Familiaridad']?.number || 0),
+      scoreReconocimiento: Math.round(page.properties['Reconocimiento']?.number || 0),
     };
 
     // Extraer info adicional
