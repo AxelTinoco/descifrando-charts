@@ -11,7 +11,21 @@ export async function POST(request: NextRequest) {
 
     // Extraer datos de Tally
     const tallyData = body.data?.fields || body.fields || body;
-    const submission_id = body.eventId || body.submissionId || body.data?.responseId || Date.now().toString();
+
+    // Extraer TODOS los IDs que Tally envía
+    const eventId = body.eventId;
+    const responseId = body.data?.responseId;
+    const submissionId = body.data?.submissionId;
+    const respondentId = body.data?.respondentId;
+
+    console.log('🔑 IDs recibidos de Tally:');
+    console.log(`   - eventId: ${eventId}`);
+    console.log(`   - responseId: ${responseId}`);
+    console.log(`   - submissionId: ${submissionId}`);
+    console.log(`   - respondentId: ${respondentId}`);
+
+    // Usar el responseId como principal (es el que usa {{response_id}} en Tally)
+    const submission_id = responseId || submissionId || eventId || Date.now().toString();
 
     // Convertir array de fields a objeto key-value para facilitar búsqueda
     const fieldsMap = new Map<string, any>();
@@ -22,7 +36,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`📋 Submission ID: ${submission_id}`);
+    console.log(`📋 Usando Submission ID principal: ${submission_id}`);
     console.log(`📊 Total de campos recibidos: ${fieldsMap.size}`);
 
     // Extraer nombre
@@ -92,15 +106,26 @@ export async function POST(request: NextRequest) {
       console.log(`   ${key}: ${value}`);
     });
 
-    // Guardar resultados en caché para que la página los recupere
-    saveResult(submission_id, {
+    // Preparar objeto de resultado
+    const resultData = {
       submission_id,
       nombre,
       scores: finalScores,
       timestamp: Date.now(),
+    };
+
+    // Guardar resultados en caché con TODOS los IDs posibles
+    // Esto asegura que sin importar qué variable use Tally, se encontrarán los datos
+    const idsToSave = [submission_id, responseId, submissionId, respondentId, eventId].filter(Boolean);
+
+    console.log(`💾 Guardando resultados con ${idsToSave.length} IDs diferentes:`);
+    idsToSave.forEach(id => {
+      if (id) {
+        saveResult(id, resultData);
+        console.log(`   ✓ Guardado con ID: ${id}`);
+      }
     });
 
-    console.log('💾 Resultados guardados en caché');
     console.log('========================================\n');
 
     // Devolver respuesta exitosa
