@@ -63,24 +63,36 @@ export async function GET(request: NextRequest) {
 
     const page: any = data.results[0];
 
-    // Extraer los scores directamente desde Notion (sin bucketing)
-    // Los scores ya vienen calculados con la ponderación 70%/30%
-    const userScores = {
-      scoreCalidad: Math.round(page.properties['Score Calidad']?.number || 0),
-      scoreRelevancia: Math.round(page.properties['Score Relevancia']?.number || 0),
-      scoreIdentidad: Math.round(page.properties['Score Identidad']?.number || 0),
-      scoreConsistencia: Math.round(page.properties['Score Consistencia']?.number || 0),
-      scoreAdopcion: Math.round(page.properties['Score Adopción']?.number || 0),
-      scoreValores: Math.round(page.properties['Score Valores']?.number || 0),
-      scoreConveniencia: Math.round(page.properties['Score Conveniencia']?.number || 0),
-      scoreEficienciaExp: Math.round(page.properties['Score Eficiencia Exp']?.number || 0),
-      scoreFamiliaridad: Math.round(page.properties['Score Familiaridad']?.number || 0),
-      scoreReconocimiento: Math.round(page.properties['Score Reconocimiento']?.number || 0),
+    // Helper para calcular el score ponderado de forma segura
+    const getWeightedScore = (properties: any, name: string) => {
+      const score70 = properties[`Score ${name} 70`]?.number || 0;
+      const score30 = properties[`Score ${name} 30`]?.number || 0;
+      
+      // LOG TEMPORAL para 'Eficiencia'
+      if (name === 'Eficiencia') {
+        console.log(`DEBUG Eficiencia: Score ${name} 70 = ${score70}, Score ${name} 30 = ${score30}`);
+      }
+
+      return Math.round((score70 * 0.7) + (score30 * 0.3));
     };
 
-    // Extraer info adicional
-    const nombre = page.properties['Nombre']?.rich_text?.[0]?.text?.content || '';
-    const fecha = page.properties['Fecha']?.date?.start || '';
+    // Extraer y calcular los scores finales usando los nombres de propiedad correctos
+    const userScores = {
+      scoreCalidad: getWeightedScore(page.properties, 'Calidad'),
+      scoreRelevancia: getWeightedScore(page.properties, 'Relevancia'),
+      scoreIdentidad: getWeightedScore(page.properties, 'Identidad'),
+      scoreConsistencia: getWeightedScore(page.properties, 'Consistencia'),
+      scoreAdopcion: getWeightedScore(page.properties, 'Adopcion'),
+      scoreValores: getWeightedScore(page.properties, 'Valor'), // Corregido a 'Valor'
+      scoreConveniencia: getWeightedScore(page.properties, 'Conveniencia'),
+      scoreEficienciaExp: getWeightedScore(page.properties, 'Eficiencia'), // Corregido a 'Eficiencia'
+      scoreFamiliaridad: getWeightedScore(page.properties, 'Familiaridad'),
+      scoreReconocimiento: getWeightedScore(page.properties, 'Reconocimiento'),
+    };
+
+    // Extraer info adicional (usando 'title' para el nombre y 'Fecha Submission')
+    const nombre = page.properties['Nombre']?.title?.[0]?.text?.content || '';
+    const fecha = page.properties['Fecha Submission']?.date?.start || '';
 
     return NextResponse.json({
       success: true,
