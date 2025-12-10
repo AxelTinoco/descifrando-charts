@@ -2,6 +2,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import RadarScoreChart from '@/components/RadarScoreChart';
+import DimensionCard from '@/components/DimensionCard';
+import RelationshipSummary from '@/components/RelationshipSummary';
 
 interface Scores {
   scoreCalidad: number;
@@ -30,6 +32,31 @@ const scoreLabels: Record<ScoreKey, string> = {
   scoreFamiliaridad: 'Familiaridad',
   scoreReconocimiento: 'Reconocimiento',
 };
+
+// Función para calcular el score general (promedio de todos los pilares)
+function calculateOverallScore(scores: Scores): number {
+  const values = Object.values(scores);
+  const sum = values.reduce((acc, val) => acc + val, 0);
+  return sum / values.length;
+}
+
+// Función para obtener los top 3 pilares
+function getTopPillars(scores: Scores): Array<{ name: string; score: number }> {
+  const pillars = Object.entries(scores).map(([key, value]) => ({
+    name: scoreLabels[key as ScoreKey],
+    score: value,
+  }));
+
+  return pillars.sort((a, b) => b.score - a.score).slice(0, 3);
+}
+
+// Función para determinar el tipo de relación
+function getRelationshipType(overallScore: number): string {
+  if (overallScore >= 75) return 'Leal';
+  if (overallScore >= 50) return 'Comprometida';
+  if (overallScore >= 25) return 'Transaccional';
+  return 'Débil';
+}
 
 interface NotionResponse {
   success: boolean;
@@ -341,89 +368,104 @@ function ResultadosContent() {
           showComparison={true}
         />
 
-        {/* Insights y Recomendaciones */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Fortalezas */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="text-3xl">💪</div>
-              <h3 className="text-2xl font-bold text-gray-800">Fortalezas</h3>
-            </div>
-            {Object.values(userScores).filter(score => score >= 66).length > 0 ? (
-              <ul className="space-y-2">
-                {Object.entries(userScores)
-                  .filter(([_, score]) => score >= 66)
-                  .map(([key, score]) => (
-                    <li key={key} className="flex items-center gap-2">
-                      <span className="text-green-500 text-xl">✓</span>
-                      <span className="text-gray-700">
-                        {scoreLabels[key as ScoreKey]} ({score}%)
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 italic">
-                Aún no has alcanzado el nivel alto en ninguna dimensión
-              </p>
-            )}
+        {/* Dimensiones de Lealtad */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Columna 1 - 3 tarjetas */}
+          <div className="space-y-4">
+            <DimensionCard
+              icon="/icons/Calidad.png"
+              backgroundColor="#B8E6E6"
+              title="Calidad y eficacia"
+              description="Capacidad de la marca para ofrecer productos o servicios que cumplan consistentemente con lo prometido, garantizando funcionalidad y satisfacción en la relación costo-beneficio."
+              label="Calidad y eficacia"
+            />
+            <DimensionCard
+              icon="/icons/Consistencia.png"
+              backgroundColor="#B8E6E6"
+              title="Consistencia"
+              description="Cumplimiento constante de la promesa de valor de la marca a lo largo del tiempo, reforzando la confianza del usuario."
+              label="Consistencia"
+            />
+            <DimensionCard
+              icon="/icons/Conveniencia.png"
+              backgroundColor="#B8E6E6"
+              title="Conveniencia"
+              description="Facilidad de acceso, disponibilidad y simplicidad en los procesos que permiten al usuario mantener un vínculo fluido con la marca."
+              label="Conveniencia"
+            />
           </div>
 
-          {/* Oportunidades */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="text-3xl">📈</div>
-              <h3 className="text-2xl font-bold text-gray-800">Oportunidades</h3>
-            </div>
-            {Object.values(userScores).filter(score => score <= 33).length > 0 ? (
-              <ul className="space-y-2">
-                {Object.entries(userScores)
-                  .filter(([_, score]) => score <= 33)
-                  .map(([key, score]) => (
-                    <li key={key} className="flex items-center gap-2">
-                      <span className="text-yellow-500 text-xl">→</span>
-                      <span className="text-gray-700">
-                        {scoreLabels[key as ScoreKey]} ({score}%)
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 italic">
-                ¡Excelente! No tienes áreas de oportunidad significativas
-              </p>
-            )}
+          {/* Columna 2 - 4 tarjetas */}
+          <div className="space-y-4">
+            <DimensionCard
+              icon="/icons/Relevancia.png"
+              backgroundColor="#67CDD5"
+              title="Relevancia"
+              description="Capacidad de la marca para mantenerse significativa en la vida de las personas, adaptándose a sus necesidades cambiantes y al contexto social y cultural."
+              label="Relevancia"
+            />
+            <DimensionCard
+              icon="/icons/Adopcion.png"
+              backgroundColor="#67CDD5"
+              title="Adopción"
+              description="Nivel de integración de los productos o servicios de la marca en la rutina diaria de las personas, convirtiéndose en parte de sus hábitos y estilo de vida."
+              label="Adopción"
+            />
+            <DimensionCard
+              icon="/icons/Eficiencia.png"
+              backgroundColor="#67CDD5"
+              title="Eficiencia en la experiencia"
+              description="Calidad y diferenciación del servicio o experiencia en cada punto de contacto, combinando lo funcional y lo emocional para generar interacciones memorables."
+              label="Eficiencia en la experiencia"
+            />
+            <DimensionCard
+              icon="/icons/Reconocimiento.png"
+              backgroundColor="#67CDD5"
+              title="Reconocimiento"
+              description="Valoración tangible o simbólica hacia los usuarios frecuentes, expresada mediante beneficios, recompensas o gestos que los hacen sentirse apreciados y valorados."
+              label="Reconocimiento"
+            />
+          </div>
+
+          {/* Columna 3 - 3 tarjetas */}
+          <div className="space-y-4">
+            <DimensionCard
+              icon="/icons/Identidad.png"
+              backgroundColor="#3D7B80"
+              title="Identidad"
+              description="El grado en que una marca refleja el estilo de vida, aspiraciones o valores personales de los consumidores, funcionando como un espejo de quiénes son o aspiran a ser."
+              label="Identidad"
+            />
+            <DimensionCard
+              icon="/icons/Valores.png"
+              backgroundColor="#3D7B80"
+              title="Valores e impacto"
+              description="Alineación de la marca con principios éticos, sociales y ambientales significativos para los consumidores, generando confianza y legitimidad."
+              label="Valores e impacto"
+            />
+            <DimensionCard
+              icon="/icons/Familiaridad.png"
+              backgroundColor="#3D7B80"
+              title="Familiaridad"
+              description="Vínculo emocional que surge de la cercanía y continuidad en el tiempo, generando confianza y seguridad."
+              label="Familiaridad"
+            />
           </div>
         </div>
 
-        {/* Call to Action */}
-        <div className="mt-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">¿Qué sigue?</h2>
-          <p className="text-lg mb-6 text-purple-100">
-            {userName
-              ? 'Tus resultados han sido guardados de forma segura en Notion.'
-              : 'Basándonos en tus resultados, te recomendamos enfocarte en mejorar las áreas con menor puntuación.'}
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button
-              onClick={() => window.print()}
-              className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition"
-            >
-              Imprimir Resultados
-            </button>
-            <button className="bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-800 transition">
-              Compartir en Redes
-            </button>
-          </div>
+
+
+        {/* Resumen de Relación */}
+        <div className="mt-12">
+          <RelationshipSummary
+            brandName="Marca"
+            relationshipType={getRelationshipType(calculateOverallScore(userScores))}
+            overallScore={calculateOverallScore(userScores)}
+            topPillars={getTopPillars(userScores)}
+          />
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-gray-300">
-          <p>Resultados generados el {new Date().toLocaleDateString('es-MX')}</p>
-          <p className="mt-2 text-sm">
-            Basado en {totalResponses} respuestas · Quiz de Lealtad de Marca
-          </p>
-        </div>
+
       </div>
     </div>
   );
