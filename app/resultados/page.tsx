@@ -169,9 +169,9 @@ function ResultadosContent() {
           return;
         }
 
-        // Si después de 3 intentos no encuentra, mostrar error
-        setError('No se encontraron tus resultados. Por favor, intenta de nuevo.');
-        setLoading(false);
+        // Si después de 3 intentos no encuentra en caché, consultar Notion directamente
+        console.log('💾 Caché vacío (probablemente en Vercel serverless), consultando Notion...');
+        await loadDataFromNotion(submissionId);
         return;
       }
 
@@ -194,8 +194,15 @@ function ResultadosContent() {
         return;
       }
 
-      setError('Error al cargar los datos');
-      setLoading(false);
+      // Después de 3 intentos fallidos, intentar Notion como último recurso
+      console.log('💾 Error persistente en caché, consultando Notion como fallback...');
+      try {
+        await loadDataFromNotion(submissionId);
+      } catch (notionErr) {
+        console.error('Error loading from Notion:', notionErr);
+        setError('Error al cargar los datos desde todas las fuentes');
+        setLoading(false);
+      }
     }
   };
 

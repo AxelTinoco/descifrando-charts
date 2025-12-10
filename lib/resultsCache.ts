@@ -39,6 +39,10 @@ export function getResult(submission_id: string): CachedResult | null {
 
   if (!result) {
     console.log(`❌ No se encontró resultado en caché: ${submission_id}`);
+    console.log(`📋 IDs disponibles en caché (${resultsCache.size}):`);
+    Array.from(resultsCache.keys()).forEach(key => {
+      console.log(`   - ${key}`);
+    });
     return null;
   }
 
@@ -68,6 +72,24 @@ export function clearExpiredResults() {
   if (cleared > 0) {
     console.log(`🧹 Limpiados ${cleared} resultados expirados del caché`);
   }
+}
+
+export function getAllCachedIds(): string[] {
+  return Array.from(resultsCache.keys());
+}
+
+export function getCacheStats() {
+  const now = Date.now();
+  const entries = Array.from(resultsCache.entries()).map(([id, data]) => ({
+    id,
+    nombre: data.nombre,
+    age_seconds: Math.floor((now - data.timestamp) / 1000),
+  }));
+
+  return {
+    total: resultsCache.size,
+    entries,
+  };
 }
 
 // Limpiar resultados expirados cada 10 minutos
