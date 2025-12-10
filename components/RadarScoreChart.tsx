@@ -10,6 +10,31 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+interface Scores {
+  scoreCalidad: number;
+  scoreRelevancia: number;
+  scoreIdentidad: number;
+  scoreConsistencia: number;
+  scoreAdopcion: number;
+  scoreValores: number;
+  scoreConveniencia: number;
+  scoreEficienciaExp: number;
+  scoreFamiliaridad: number;
+  scoreReconocimiento: number;
+}
+
+interface RadarScoreChartProps {
+  userScores: Scores;
+  showComparison?: boolean;
+  averageScores?: Scores | null;
+}
+
+interface ChartDataPoint {
+  subject: string;
+  userScore: number;
+  average?: number;
+}
+
 /**
  * Componente de Gráfica Radial para Quiz de Lealtad
  *
@@ -22,11 +47,11 @@ export default function RadarScoreChart({
   userScores,
   showComparison = true,
   averageScores = null
-}) {
+}: RadarScoreChartProps) {
 
   // Configuración de los scores con sus labels
   // El orden sigue el sentido horario empezando desde la parte superior
-  const scoreConfig = [
+  const scoreConfig: Array<{ key: keyof Scores; label: string }> = [
     { key: 'scoreRelevancia', label: 'Relevancia' },
     { key: 'scoreAdopcion', label: 'Adopción' },
     { key: 'scoreEficienciaExp', label: 'Eficiencia' },
@@ -41,7 +66,7 @@ export default function RadarScoreChart({
 
   // Transformar datos para el radar chart
   const chartData = scoreConfig.map(({ key, label }) => {
-    const dataPoint = {
+    const dataPoint: ChartDataPoint = {
       subject: label,
       userScore: userScores[key] || 0,
     };
@@ -67,7 +92,7 @@ export default function RadarScoreChart({
   ).toFixed(1) : null;
 
   // Custom tick para mostrar label + porcentaje
-  const CustomTick = ({ x, y, payload, index }) => {
+  const CustomTick = ({ x, y, payload, index }: any) => {
     // Buscar el score correspondiente en chartData
     const dataPoint = chartData.find(item => item.subject === payload.value);
     const percentage = dataPoint ? dataPoint.userScore : 0;
@@ -77,7 +102,7 @@ export default function RadarScoreChart({
     const angle = (index * 360) / totalPoints - 90; // -90 para empezar arriba
 
     // Calcular offset dinámico basado en la posición
-    let textAnchor = 'middle';
+    let textAnchor: 'middle' | 'start' | 'end' = 'middle';
     let dx = 0;
     let dy = 0;
 
