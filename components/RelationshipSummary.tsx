@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React from 'react';
 
 interface RelationshipSummaryProps {
@@ -19,14 +20,20 @@ export default function RelationshipSummary({
   return (
     <div className="bg-white rounded-xl border-4 border-blue-500 p-8 shadow-xl">
       {/* Header con nombre de marca */}
-      <h2 className="text-3xl font-bold text-gray-900 mb-8">{brandName}</h2>
+      <Image
+        src="/icons/apple-black.png"
+        alt="Apple"
+        width={120}
+        height={80}
+        className="h-16 md:h-20 w-auto"
+      />
 
       <div className="flex flex-col lg:flex-row gap-8 items-start">
         {/* Lado izquierdo - Pilares */}
         <div className="flex w-[450px] flex-col">
           <div className="mb-6">
-            <span className="text-xl text-gray-700">Tu relación es: </span>
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-lg text-gray-700">Tu relación es: </span>
+            <span className=" text-lg font-bold text-gray-900">
               {relationshipType}
             </span>
           </div>

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import RadarScoreChart from '@/components/RadarScoreChart';
 import DimensionCard from '@/components/DimensionCard';
 import RelationshipSummary from '@/components/RelationshipSummary';
@@ -360,12 +361,16 @@ function ResultadosContent() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-left mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+          <h1 className="text-xl md:text-3xl font-bold text-white mb-6">
             Tu relación con
           </h1>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-            Marca
-          </h1>
+          <Image
+            src="/icons/apple.png"
+            alt="Apple"
+            width={120}
+            height={80}
+            className="h-16 md:h-20 w-auto"
+          />
         </div>
 
         {/* Gráfica Principal */}
