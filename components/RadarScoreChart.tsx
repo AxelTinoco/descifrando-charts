@@ -175,18 +175,6 @@ export default function RadarScoreChart({
               axisLine={false}
             />
 
-            {/* Radar del promedio (mostrar primero para que quede atrás) */}
-            {showComparison && averageScores && (
-              <Radar
-                name="Promedio General"
-                dataKey="average"
-                stroke="#67CDD5"
-                fill="#E8E4DD"
-                fillOpacity={0.9}
-                strokeWidth={2.5}
-              />
-            )}
-
             {/* Radar del usuario (adelante) */}
             <Radar
               name="Tu Score"

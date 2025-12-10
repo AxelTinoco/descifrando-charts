@@ -88,7 +88,7 @@ export default function RelationshipSummary({
                     {pillar.name}
                   </div>
                   <div className="text-2xl font-bold text-gray-900">
-                    {pillar.score}%
+                    {pillar.score.toFixed(1)}%
                   </div>
                 </div>
               </div>
