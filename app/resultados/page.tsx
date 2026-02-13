@@ -51,12 +51,39 @@ function getTopPillars(scores: Scores): Array<{ name: string; score: number }> {
   return pillars.sort((a, b) => b.score - a.score).slice(0, 3);
 }
 
-// Función para determinar el tipo de relación
-function getRelationshipType(overallScore: number): string {
-  if (overallScore >= 75) return 'Leal';
-  if (overallScore >= 50) return 'Comprometida';
-  if (overallScore >= 25) return 'Transaccional';
-  return 'Débil';
+// Agrupación de pilares por tipo de relación
+const relationshipGroups = {
+  transaccional: ['scoreCalidad', 'scoreConsistencia', 'scoreConveniencia'] as ScoreKey[],
+  mixta: ['scoreRelevancia', 'scoreAdopcion', 'scoreEficienciaExp', 'scoreReconocimiento'] as ScoreKey[],
+  emocional: ['scoreIdentidad', 'scoreValores', 'scoreFamiliaridad'] as ScoreKey[],
+};
+
+interface RelationshipResult {
+  type: 'Transaccional' | 'Mixta' | 'Emocional';
+  transaccionalAvg: number;
+  mixtaAvg: number;
+  emocionalAvg: number;
+}
+
+// Función para determinar el tipo de relación basado en promedios por grupo
+function getRelationshipType(scores: Scores): RelationshipResult {
+  const avg = (keys: ScoreKey[]) =>
+    keys.reduce((sum, k) => sum + scores[k], 0) / keys.length;
+
+  const transaccionalAvg = avg(relationshipGroups.transaccional);
+  const mixtaAvg = avg(relationshipGroups.mixta);
+  const emocionalAvg = avg(relationshipGroups.emocional);
+
+  let type: RelationshipResult['type'];
+  if (transaccionalAvg >= mixtaAvg && transaccionalAvg >= emocionalAvg) {
+    type = 'Transaccional';
+  } else if (emocionalAvg >= mixtaAvg) {
+    type = 'Emocional';
+  } else {
+    type = 'Mixta';
+  }
+
+  return { type, transaccionalAvg, mixtaAvg, emocionalAvg };
 }
 
 interface NotionResponse {
@@ -100,6 +127,93 @@ function ErrorView({ error, onRetry }: { error: string; onRetry: () => void }) {
         >
           Reintentar
         </button>
+      </div>
+    </div>
+  );
+}
+
+function RelationshipTypes({ relationship }: { relationship: RelationshipResult }) {
+  const activeSegment = relationship.type.toLowerCase() as 'transaccional' | 'mixta' | 'emocional';
+
+  const segments = [
+    {
+      key: 'transaccional' as const,
+      icon: '/relaciones/transaccional.svg',
+      title: 'RELACIÓN\nTRANSACCIONAL',
+      description: 'Una relación basada en beneficios funcionales',
+      avg: relationship.transaccionalAvg,
+    },
+    {
+      key: 'mixta' as const,
+      icon: '/relaciones/mixta.svg',
+      title: 'RELACIÓN\nMIXTA',
+      description: 'Una relación basada en beneficios funcionales y emocionales',
+      avg: relationship.mixtaAvg,
+    },
+    {
+      key: 'emocional' as const,
+      icon: '/relaciones/emocional.svg',
+      title: 'RELACIÓN\nEMOCIONAL',
+      description: 'Una relación basada en beneficios emocionales',
+      avg: relationship.emocionalAvg,
+    },
+  ];
+
+  // Bar position: map the winning group to a position on the gradient
+  // Transaccional = left (avg mapped to 0-33%), Mixta = center (33-66%), Emocional = right (66-100%)
+  const maxAvg = Math.max(relationship.transaccionalAvg, relationship.mixtaAvg, relationship.emocionalAvg);
+  let barPercent: number;
+  if (activeSegment === 'transaccional') {
+    barPercent = (relationship.transaccionalAvg / maxAvg) * 33;
+  } else if (activeSegment === 'mixta') {
+    barPercent = 33 + (relationship.mixtaAvg / maxAvg) * 33;
+  } else {
+    barPercent = 66 + (relationship.emocionalAvg / maxAvg) * 34;
+  }
+
+  return (
+    <div className="mt-12">
+      {/* Three columns */}
+      <div className="grid grid-cols-3 gap-8 mb-8">
+        {segments.map((seg) => (
+          <div key={seg.key} className="flex flex-col items-center text-center">
+            <Image
+              src={seg.icon}
+              alt={seg.key}
+              width={46}
+              height={33}
+              className="mb-3"
+            />
+            <h3
+              className={`text-lg font-bold uppercase whitespace-pre-line leading-tight mb-2 ${
+                activeSegment === seg.key ? 'text-white' : 'text-gray-400'
+              }`}
+            >
+              {seg.title}
+            </h3>
+            <p
+              className={`text-sm ${
+                activeSegment === seg.key ? 'text-gray-300' : 'text-gray-500'
+              }`}
+            >
+              {seg.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Progress bar */}
+      <div className="relative h-2 rounded-full bg-gray-700 overflow-hidden">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{
+            width: `${barPercent}%`,
+            background: 'linear-gradient(to right, #1a4a4e, #3d7b80, #67cdd5, #a0e8ef)',
+          }}
+        />
+        {/* Divider lines at 33% and 66% */}
+        <div className="absolute top-0 bottom-0 left-1/3 w-0.5 bg-gray-900" />
+        <div className="absolute top-0 bottom-0 left-2/3 w-0.5 bg-gray-900" />
       </div>
     </div>
   );
@@ -380,6 +494,26 @@ function ResultadosContent() {
           showComparison={true}
         />
 
+        {/* Resumen de Relación */}
+        {(() => {
+          const relationship = getRelationshipType(userScores);
+          return (
+            <>
+              <div className="mt-12">
+                <RelationshipSummary
+                  brandName="Marca"
+                  relationshipType={relationship.type}
+                  overallScore={calculateOverallScore(userScores)}
+                  topPillars={getTopPillars(userScores)}
+                />
+              </div>
+
+              {/* Tipos de Relación */}
+              <RelationshipTypes relationship={relationship} />
+            </>
+          );
+        })()}
+
         {/* Dimensiones de Lealtad */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Columna 1 - 3 tarjetas */}
@@ -467,15 +601,7 @@ function ResultadosContent() {
 
 
 
-        {/* Resumen de Relación */}
-        <div className="mt-12">
-          <RelationshipSummary
-            brandName="Marca"
-            relationshipType={getRelationshipType(calculateOverallScore(userScores))}
-            overallScore={calculateOverallScore(userScores)}
-            topPillars={getTopPillars(userScores)}
-          />
-        </div>
+
 
 
       </div>

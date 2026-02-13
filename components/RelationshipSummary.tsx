@@ -80,8 +80,14 @@ export default function RelationshipSummary({
 
               {/* Pilar score */}
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-2">
-                  <span className="text-white text-2xl font-bold">+</span>
+                <div className="w-auto h-12 rounded-full flex items-center justify-center mb-2">
+                  <Image
+                    src="/icons/Plus.png"
+                    alt="Apple"
+                    width={39}
+                    height={39}
+                    className="h-10 w-auto"
+                  />
                 </div>
                 <div className="text-center">
                   <div className="text-sm font-semibold text-gray-700 mb-1">
@@ -97,13 +103,6 @@ export default function RelationshipSummary({
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-900">GERUNDIO</span>
-          <span className="text-sm text-gray-600">Descifrando la lealtad</span>
-        </div>
-      </div>
     </div>
   );
 }
