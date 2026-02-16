@@ -70,15 +70,15 @@ function getRelationshipType(scores: Scores): RelationshipResult {
   const avg = (keys: ScoreKey[]) =>
     keys.reduce((sum, k) => sum + scores[k], 0) / keys.length;
 
-  const transaccionalAvg = avg(relationshipGroups.transaccional);
-  const mixtaAvg = avg(relationshipGroups.mixta);
-  const emocionalAvg = avg(relationshipGroups.emocional);
+  const transaccionalAvg = Math.round(avg(relationshipGroups.transaccional));
+  const mixtaAvg = Math.round(avg(relationshipGroups.mixta));
+  const emocionalAvg = Math.round(avg(relationshipGroups.emocional));
 
   let type: RelationshipResult['type'];
-  if (transaccionalAvg >= mixtaAvg && transaccionalAvg >= emocionalAvg) {
-    type = 'Transaccional';
-  } else if (emocionalAvg >= mixtaAvg) {
+  if (emocionalAvg > mixtaAvg && emocionalAvg > transaccionalAvg) {
     type = 'Emocional';
+  } else if (transaccionalAvg > mixtaAvg) {
+    type = 'Transaccional';
   } else {
     type = 'Mixta';
   }
