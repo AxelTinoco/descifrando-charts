@@ -23,13 +23,6 @@ export default function DimensionCard({
       className="relative rounded-lg p-6 shadow-md h-auto min-h-[200px]"
       style={{ backgroundColor }}
     >
-      {/* Label at bottom left */}
-      {label && (
-        <div className="absolute bottom-3 left-3 text-xs text-gray-500 opacity-50">
-          {label}
-        </div>
-      )}
-
       <div className="flex items-center gap-4 pb-6">
         {/* Icon */}
         <div className={`flex-shrink-0 ${iconClassName}`}>
