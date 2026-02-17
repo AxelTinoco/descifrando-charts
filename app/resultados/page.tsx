@@ -75,9 +75,9 @@ function getRelationshipType(scores: Scores): RelationshipResult {
   const emocionalAvg = Math.round(avg(relationshipGroups.emocional));
 
   let type: RelationshipResult['type'];
-  if (emocionalAvg > mixtaAvg && emocionalAvg > transaccionalAvg) {
+  if (emocionalAvg > transaccionalAvg && emocionalAvg > mixtaAvg) {
     type = 'Emocional';
-  } else if (transaccionalAvg > mixtaAvg) {
+  } else if (transaccionalAvg > emocionalAvg && transaccionalAvg > mixtaAvg) {
     type = 'Transaccional';
   } else {
     type = 'Mixta';
