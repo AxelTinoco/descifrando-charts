@@ -21,8 +21,8 @@ export default function RelationshipSummary({
     <div className="bg-white rounded-xl border-4 border-blue-500 p-8 shadow-xl">
       {/* Header con nombre de marca */}
       <Image
-        src="/icons/apple-black.png"
-        alt="Apple"
+        src="/icons/Volaris.png"
+        alt="Volaris"
         width={120}
         height={80}
         className="h-16 md:h-20 w-auto"

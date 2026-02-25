@@ -479,8 +479,8 @@ function ResultadosContent() {
             Tu relación con
           </h1>
           <Image
-            src="/icons/apple.png"
-            alt="Apple"
+            src="/icons/Volaris_logo.svg.png"
+            alt="Volaris"
             width={120}
             height={80}
             className="h-16 md:h-20 w-auto"
