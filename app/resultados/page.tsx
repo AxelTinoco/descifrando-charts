@@ -109,24 +109,23 @@ function LoadingSpinner() {
   );
 }
 
-function ErrorView({ error, onRetry }: { error: string; onRetry: () => void }) {
+function ThankYouView() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
-      <div className="text-center max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <div className="text-6xl mb-4">😕</div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          {error}
+    <div className="min-h-screen flex items-center justify-center bg-[#232323]">
+      <div className="text-center max-w-md px-6">
+        <Image
+          src="/icons/Logo.png"
+          alt="Logo"
+          width={180}
+          height={180}
+          className="mx-auto mb-8"
+        />
+        <h1 className="text-3xl leading-relaxed text-white  mb-2">
+          Te mereces un buen café.
         </h1>
-        <p className="text-gray-600 mb-6">
-          Es posible que tus datos aún se estén guardando en Notion.
-          Por favor, espera un momento e intenta de nuevo.
+        <p className="text-gray-500 text-base">
+          ¡Muchas gracias por participar!
         </p>
-        <button
-          onClick={onRetry}
-          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
-        >
-          Reintentar
-        </button>
       </div>
     </div>
   );
@@ -450,24 +449,8 @@ function ResultadosContent() {
     return <LoadingSpinner />;
   }
 
-  if (error) {
-    return <ErrorView error={error} onRetry={handleRetry} />;
-  }
-
-  if (!userScores) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">😕</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            No se encontraron resultados
-          </h1>
-          <p className="text-gray-600">
-            Por favor, completa el formulario primero para ver tus resultados.
-          </p>
-        </div>
-      </div>
-    );
+  if (error || !userScores) {
+    return <ThankYouView />;
   }
 
   return (
