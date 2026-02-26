@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import RadarScoreChart from '@/components/RadarScoreChart';
 import DimensionCard from '@/components/DimensionCard';
@@ -218,14 +218,25 @@ function RelationshipTypes({ relationship }: { relationship: RelationshipResult 
   );
 }
 
+function allScoresAreZero(scores: Scores): boolean {
+  return Object.values(scores).every((v) => v === 0);
+}
+
 function ResultadosContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userScores, setUserScores] = useState<Scores | null>(null);
   const [userName, setUserName] = useState<string>('');
   const [averageScores, setAverageScores] = useState<Scores | null>(null);
   const [totalResponses, setTotalResponses] = useState(0);
+
+  useEffect(() => {
+    if (userScores && allScoresAreZero(userScores)) {
+      router.replace('/thanks');
+    }
+  }, [userScores, router]);
 
   useEffect(() => {
     const submission_id = searchParams.get('submission_id');
