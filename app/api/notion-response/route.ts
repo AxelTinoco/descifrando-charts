@@ -31,11 +31,17 @@ export async function GET(request: NextRequest) {
       },
       body: JSON.stringify({
         filter: {
-          property: 'Respondent ID',
+          property: 'Submission ID',
           rich_text: {
             equals: submission_id
           }
-        }
+        },
+        sorts: [
+          {
+            timestamp: 'created_time',
+            direction: 'descending'
+          }
+        ]
       })
     });
 
